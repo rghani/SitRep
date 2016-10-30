@@ -143,7 +143,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         ParticleDevice myDevice = null;
 
 
-
+        EventPipeline<PhotonPackage> eventPipeLine;
 
         Dictionary<string, VisualGestureBuilderDatabase> workoutDatabases = new Dictionary<string, VisualGestureBuilderDatabase>();
 
@@ -325,6 +325,9 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <param name="e">event arguments</param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            eventPipeLine = new EventPipeline<PhotonPackage>();
+            eventPipeLine.OnEnqueue += EventPipeLine_EventWaiting;
+            eventPipeLine.OnDequeue += EventPipeLine_EventPublished;
             if (this.bodyFrameReader != null)
             {
                 this.bodyFrameReader.FrameArrived += this.Reader_FrameArrived;
@@ -334,6 +337,16 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                 myDevice = Task.Run(getDeviceAsync).Result;
 
 
+        }
+
+        private void EventPipeLine_EventWaiting(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void EventPipeLine_EventPublished(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -489,8 +502,13 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                     //Analyze this frame's data and return a bit vector containing information about which posture checks failed
                     BitVector32 postureFlag = postureAnalyzer.AnalyzeWorkout(body, e.gestureName,e.ContinuousResult.Progress);
+
+                    //Here, check if the time at which the previous and current photon packages were sent, and if it is more than x # of seconds OR if it has changed then send again
+
+
+                    eventPipeLine.Enqueue(new PhotonPackage(postureFlag));
+                    break;
                 }
-                break;
             }
         }
 

@@ -27,7 +27,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             switch (workoutName)
             {
                 case "Shoulder_Press":
-                    //Shoulder Press workout has currently 3 checks associated with it
+                    //Shoulder Press workout has currently 6 checks associated with it
                     return TrackShoulderLimbs(body);
                 default:
                     return null;
@@ -102,7 +102,6 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                     Vector rightUpperArm = new Vector(limbs["rightUpperArm"].X, limbs["rightUpperArm"].Y);
                     Vector rightLowerArm = new Vector(limbs["rightLowerArm"].X, limbs["rightLowerArm"].Y);
-                    double leftAngle = Vector.Multiply(leftLowerArm, leftUpperArm) / (leftLowerArm.Length * leftUpperArm.Length);
                     if(Math.Abs(Vector.AngleBetween(leftLowerArm,leftUpperArm) - 0.0) < 15.0 || Math.Abs(Vector.AngleBetween(rightLowerArm,rightUpperArm) - 180.0) < 15.0)
                     {
                         postureFlags[armsLockedFlag] = true;
