@@ -124,6 +124,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EventPipeline.cs" />
+    <Compile Include="PhotonPackage.cs" />
     <Compile Include="PostureAnalyzer.cs" />
     <Compile Include="ProtectedInfo.cs" />
     <Compile Include="WorkoutController.cs" />

@@ -143,7 +143,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         ParticleDevice myDevice = null;
 
 
-        EventPipeline<PhotonPackage> eventPipeLine;
+        EventPipeline eventPipeLine;
 
         Dictionary<string, VisualGestureBuilderDatabase> workoutDatabases = new Dictionary<string, VisualGestureBuilderDatabase>();
 
@@ -325,7 +325,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <param name="e">event arguments</param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            eventPipeLine = new EventPipeline<PhotonPackage>();
+            eventPipeLine = new EventPipeline();
             eventPipeLine.OnEnqueue += EventPipeLine_EventWaiting;
             eventPipeLine.OnDequeue += EventPipeLine_EventPublished;
             if (this.bodyFrameReader != null)
@@ -503,10 +503,13 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                     //Analyze this frame's data and return a bit vector containing information about which posture checks failed
                     BitVector32 postureFlag = postureAnalyzer.AnalyzeWorkout(body, e.gestureName,e.ContinuousResult.Progress);
 
-                    //Here, check if the time at which the previous and current photon packages were sent, and if it is more than x # of seconds OR if it has changed then send again
-
-
-                    eventPipeLine.Enqueue(new PhotonPackage(postureFlag));
+                    eventPipeLine.EnqueuePipeline(new PhotonPackage(postureFlag));
+                    var publishEventTask = ParticleCloud.SharedCloud.PublishEventAsync("shoulder", eventPipeLine.queue.Peek().ToString() , true, 60);
+                    if (publishEventTask.Result)
+                        //Since the publish event operation is async, wait until it returns true, once its confirmed that the event is published, then empty
+                        eventPipeLine.DequeuePipeline();
+                    else
+                        Debug.WriteLine("Publishing did not occur asynchronously");
                     break;
                 }
             }

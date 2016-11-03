@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Samples.Kinect.BodyBasics
 {
-    class EventPipeline<PhotonPackage>
+    class EventPipeline
     {
         public Queue<PhotonPackage> queue = new Queue<PhotonPackage>(30);
         public event EventHandler OnEnqueue;
@@ -14,27 +14,30 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
 
         
-        protected virtual void InitiateEnqueueEvent()
+        protected void InitiateEnqueueEvent()
         {
             if (OnEnqueue != null) OnEnqueue(this, EventArgs.Empty);
         }
-        public virtual PhotonPackage Enqueue(PhotonPackage item)
+        public virtual PhotonPackage EnqueuePipeline(PhotonPackage item)
         {
             PhotonPackage prevItem = queue.Peek();
-            //Comapre previous item and current item to be queued
-            queue.Enqueue(item);
-            InitiateEnqueueEvent();
-            return item;
+            //Compare previous item and current item to be queued, if they are different OR if 1.5 seconds has passed, then enqueue the new photon package to be sent
+            if(prevItem.postureFlagBits.Data != item.postureFlagBits.Data || (DateTime.Now - prevItem.triggeredTime).TotalSeconds >= 1.5)
+            {
+                queue.Enqueue(item);
+                InitiateEnqueueEvent();
+                return item;
+            }
+            return null;
         }
 
-        protected virtual void InitiateDequeueEvent()
+        protected void InitiateDequeueEvent()
         {
             if (OnDequeue != null) OnDequeue(this, EventArgs.Empty);
         }
 
-        public virtual PhotonPackage Dequeue()
+        public virtual PhotonPackage DequeuePipeline()
         {
-            //Check some object property which is set in the onEnqueue event, once its confirmed that the event is published, then empty the queue
             PhotonPackage item = queue.Dequeue();
             InitiateDequeueEvent();
             return item;
