@@ -23,8 +23,8 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             if(queue.Count > 0)
             {
                 PhotonPackage prevItem = queue.Peek();
-                //Compare previous item and current item to be queued, if they are different OR if 1.5 seconds has passed, then enqueue the new photon package to be sent
-                if (prevItem.postureFlagBits.Data != item.postureFlagBits.Data || (DateTime.Now - prevItem.triggeredTime).TotalSeconds >= 2.0)
+                //Compare previous item and current item to be queued, if they are different then enqueue the new photon package to be sent
+                if (prevItem.postureFlagBits.Data != item.postureFlagBits.Data)
                 {
                     queue.Enqueue(item);
                     InitiateEnqueueEvent();

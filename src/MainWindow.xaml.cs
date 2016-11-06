@@ -157,7 +157,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         WorkoutController workoutController;
         PostureAnalyzer postureAnalyzer;
 
-        public DateTime lastPublishTime;
+        public DateTime lastPublishTime =DateTime.Now;
 
 
         public MainWindow()
@@ -346,7 +346,6 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             var loginSuccess = Task.Run(loginAsync).Result;
             if(loginSuccess)
                 myDevice = Task.Run(getDeviceAsync).Result;
-            lastPublishTime = DateTime.Now;
 
         }
 
@@ -523,6 +522,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                             eventPipeLine.DequeuePipeline();
                         else
                             Debug.WriteLine("Publishing did not occur properly");
+                        lastPublishTime = DateTime.Now;
                     }
                     break;
                 }
