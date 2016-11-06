@@ -157,10 +157,11 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         WorkoutController workoutController;
         PostureAnalyzer postureAnalyzer;
 
+        public DateTime lastPublishTime;
+
 
         public MainWindow()
         {
-            ParticleCloud.SharedCloud.SynchronizationContext = System.Threading.SynchronizationContext.Current;
 
             workoutDatabases.Add("workouts", new VisualGestureBuilderDatabase("Gestures/Workouts.gbd"));
 
@@ -251,11 +252,11 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
             // initialize the components (controls) of the window
             this.InitializeComponent();
-
+            
 
         }
 
-        async Task<bool> loginAsyc()
+        async Task<bool> loginAsync()
         {
             Task<bool> loginTask = ParticleCloud.SharedCloud.LoginAsync(ProtectedInfo.particleUsername, ProtectedInfo.particlePassword);
             //Do independent work that doesn't depend upon the above async method
@@ -271,9 +272,18 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
         }
 
-        async Task<bool> publishEventAsync()
+        //async Task<bool> publishEventAsync(string eventName,string data)
+        //{
+        //    Task.Run
+        //}
+        private bool publishEvent(string eventName, string data)
         {
-            return await ParticleCloud.SharedCloud.PublishEventAsync("test", "event_payload", true, 60); 
+            var success = Task.Run(() => MethodWithParameters(eventName, data));
+            return success.Result;
+        }
+        async Task<bool> MethodWithParameters(string eventName, string data)
+        {
+            return await ParticleCloud.SharedCloud.PublishEventAsync(eventName,data,false,60);
         }
 
 
@@ -325,6 +335,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         /// <param name="e">event arguments</param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            Debug.WriteLine("Loaded event is fired");
             eventPipeLine = new EventPipeline();
             eventPipeLine.OnEnqueue += EventPipeLine_EventWaiting;
             eventPipeLine.OnDequeue += EventPipeLine_EventPublished;
@@ -332,21 +343,21 @@ namespace Microsoft.Samples.Kinect.BodyBasics
             {
                 this.bodyFrameReader.FrameArrived += this.Reader_FrameArrived;
             }
-            var loginSuccess = Task.Run(loginAsyc).Result;
+            var loginSuccess = Task.Run(loginAsync).Result;
             if(loginSuccess)
                 myDevice = Task.Run(getDeviceAsync).Result;
-
+            lastPublishTime = DateTime.Now;
 
         }
 
         private void EventPipeLine_EventWaiting(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         private void EventPipeLine_EventPublished(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         /// <summary>
@@ -368,6 +379,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                 this.kinectSensor.Close();
                 this.kinectSensor = null;
             }
+            ParticleCloud.SharedCloud.Logout();
         }
 
         /// <summary>
@@ -502,14 +514,16 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
                     //Analyze this frame's data and return a bit vector containing information about which posture checks failed
                     BitVector32 postureFlag = postureAnalyzer.AnalyzeWorkout(body, e.gestureName,e.ContinuousResult.Progress);
-
-                    eventPipeLine.EnqueuePipeline(new PhotonPackage(postureFlag));
-                    var publishEventTask = ParticleCloud.SharedCloud.PublishEventAsync("shoulder", eventPipeLine.queue.Peek().ToString() , true, 60);
-                    if (publishEventTask.Result)
-                        //Since the publish event operation is async, wait until it returns true, once its confirmed that the event is published, then empty
-                        eventPipeLine.DequeuePipeline();
-                    else
-                        Debug.WriteLine("Publishing did not occur asynchronously");
+                    if((DateTime.Now - lastPublishTime).TotalSeconds >= 3.0)
+                    {
+                        eventPipeLine.EnqueuePipeline(new PhotonPackage(postureFlag));
+                        bool isEventPublished = publishEvent("shoulder", eventPipeLine.queue.Peek().postureFlagBits.ToString());
+                        if (isEventPublished)
+                            //Since the publish event operation is async, wait until it returns true, once its confirmed that the event is published, then empty
+                            eventPipeLine.DequeuePipeline();
+                        else
+                            Debug.WriteLine("Publishing did not occur properly");
+                    }
                     break;
                 }
             }

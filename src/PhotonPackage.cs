@@ -11,7 +11,6 @@ namespace Microsoft.Samples.Kinect.BodyBasics
     {
         public BitVector32 postureFlagBits;
         public DateTime triggeredTime;
-        public string eventName;
         public PhotonPackage(BitVector32 passedFlagBits)
         {
             //When photon package is created, record the time at which it was created

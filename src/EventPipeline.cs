@@ -20,15 +20,23 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
         public virtual PhotonPackage EnqueuePipeline(PhotonPackage item)
         {
-            PhotonPackage prevItem = queue.Peek();
-            //Compare previous item and current item to be queued, if they are different OR if 1.5 seconds has passed, then enqueue the new photon package to be sent
-            if(prevItem.postureFlagBits.Data != item.postureFlagBits.Data || (DateTime.Now - prevItem.triggeredTime).TotalSeconds >= 1.5)
+            if(queue.Count > 0)
+            {
+                PhotonPackage prevItem = queue.Peek();
+                //Compare previous item and current item to be queued, if they are different OR if 1.5 seconds has passed, then enqueue the new photon package to be sent
+                if (prevItem.postureFlagBits.Data != item.postureFlagBits.Data || (DateTime.Now - prevItem.triggeredTime).TotalSeconds >= 2.0)
+                {
+                    queue.Enqueue(item);
+                    InitiateEnqueueEvent();
+                    return item;
+                }
+                return null;
+            }
+            else
             {
                 queue.Enqueue(item);
-                InitiateEnqueueEvent();
                 return item;
             }
-            return null;
         }
 
         protected void InitiateDequeueEvent()
