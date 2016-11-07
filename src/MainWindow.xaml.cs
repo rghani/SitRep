@@ -272,10 +272,6 @@ namespace Microsoft.Samples.Kinect.BodyBasics
 
         }
 
-        //async Task<bool> publishEventAsync(string eventName,string data)
-        //{
-        //    Task.Run
-        //}
         private bool publishEvent(string eventName, string data)
         {
             var success = Task.Run(() => MethodWithParameters(eventName, data));
@@ -283,7 +279,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
         }
         async Task<bool> MethodWithParameters(string eventName, string data)
         {
-            return await ParticleCloud.SharedCloud.PublishEventAsync(eventName,data,false,60);
+            return await ParticleCloud.SharedCloud.PublishEventAsync(eventName,data,true,60);
         }
 
 
