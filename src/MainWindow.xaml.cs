@@ -512,7 +512,7 @@ namespace Microsoft.Samples.Kinect.BodyBasics
                     if((DateTime.Now - lastPublishTime).TotalSeconds >= 3.0)
                     {
                         eventPipeLine.EnqueuePipeline(new PhotonPackage(postureFlag));
-                        bool isEventPublished = publishEvent("shoulder", eventPipeLine.queue.Peek().postureFlagBits.ToString());
+                        bool isEventPublished = publishEvent("shoulder", eventPipeLine.queue.Peek().postureFlagBits.Data.ToString());
                         if (isEventPublished)
                             //Since the publish event operation is async, wait until it returns true, once its confirmed that the event is published, then empty
                             eventPipeLine.DequeuePipeline();
